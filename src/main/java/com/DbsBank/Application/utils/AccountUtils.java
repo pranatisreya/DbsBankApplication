@@ -4,11 +4,31 @@ import java.time.Year;
 
 public class AccountUtils {
 
-    public static final String Account_Exists_Code = "001";
-    public static final String Account_Exists_Message = "User with email already exists";
-    public static final String Account_Creation_Success = "002";
+    public static final String Account_Exists_Code = "002";
+    public static final String Account_Exists_Message = "User with email exists";
+    public static final String Account_NOT_Exists_Code = "001";
+    public static final String Account_NOT_Exists_Message = "Account does not exists";
+
+    public static final String Account_Creation_Success = "004";
     public static final String Account_Creation_Message = "Account created successfully";
     public static final String Account_Creation_Fail = "003";
+    public static final String Account_Creation_Fail_Message = "Account creation failed";
+
+    public static final String Account_Credit_Success = "006";
+    public static final String Account_Credit_Success_Message = "Account credit successful";
+    public static final String Account_Credit_NOT_Success = "005";
+    public static final String Account_Credit_NOT_Success_Message = "Account credit not successful";
+
+
+    public static final String Amount_To_Debit_Success = "008";
+    public static final String Amount_To_Debit_Success_Message = "Sufficient Balance To Debit";
+    public static final String Amount_To_Debit_NOT_Success = "007";
+    public static final String Amount_To_Debit_NOT_Success_Message = "Insufficient Balance to Debit";
+
+    public static final String Account_Debit_Success = "008";
+    public static final String Account_Debit_Success_Message = "Account Debit successful";
+    public static final String Account_Debit_NOT_Success = "007";
+    public static final String Account_Debit_NOT_Success_Message = "Account Debit not successful";
 
     public static String generateAccountNumber() {
 
