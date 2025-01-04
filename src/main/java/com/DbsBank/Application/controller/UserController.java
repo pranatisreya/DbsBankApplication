@@ -2,16 +2,32 @@ package com.DbsBank.Application.controller;
 
 import com.DbsBank.Application.dto.*;
 import com.DbsBank.Application.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/bankapi")
+
+
+@Tag(name="Customer Account Management")
 public class UserController {
 
     @Autowired
     UserService userService;
 
+
+    @Operation(
+            summary="Create new Account",
+            description = "Assigning account number"
+    )
+    @ApiResponse(
+            responseCode="004",
+            description="Account created successfully"
+    )
     @PostMapping("/customer")
     public BankResponse createAccount(@RequestBody UserRequest userRequest) {
         return userService.createAccount(userRequest);

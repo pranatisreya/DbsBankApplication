@@ -1,6 +1,6 @@
 package com.DbsBank.Application.dto;
 
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,9 +14,11 @@ import java.math.BigDecimal;
 @Builder
 public class AccountInfo {
 
-    private String accountNumber;
-    private String accountType;
-    private BigDecimal accountBalance;
-    private String accountName;
+        @Schema(name = "User Account Name")
+        private String accountName;
+        @Schema(name = "User Account Number")
+        private String accountNumber;
+        private String accountType;
+        private BigDecimal accountBalance;
 
 }

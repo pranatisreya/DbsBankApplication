@@ -1,0 +1,287 @@
+github push
+
+Initialize Git:
+
+git init
+git remote add origin https://github.com/yourusername/BankingApp.git
+
+
+Commit and push changes:
+
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git push -u origin main
+
+
+MYSQL root passowrd 134679
+
+swagger
+http://localhost:8080/swagger-ui/index.html
+
+
+Project Structure
+The project will follow a monorepo structure with separate folders for frontend and backend.
+
+1. Backend (Spring Boot)
+Folder: /backend
+
+Folder Structure
+css
+Copy code
+backend
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   └── com
+│   │   │       └── dbs
+│   │   │           └── dbsbankapp
+│   │   │               ├── controller
+│   │   │               │   ├── AccountController.java
+│   │   │               │   ├── LoginController.java
+│   │   │               │   ├── ProfileController.java
+│   │   │               │   └── TransactionController.java
+│   │   │               ├── entity
+│   │   │               │   ├── Account.java
+│   │   │               │   ├── Customer.java
+│   │   │               │   └── Transaction.java
+│   │   │               ├── repository
+│   │   │               │   ├── AccountRepository.java
+│   │   │               │   ├── CustomerRepository.java
+│   │   │               │   └── TransactionRepository.java
+│   │   │               ├── service
+│   │   │               │   ├── AccountService.java
+│   │   │               │   ├── LoginService.java
+│   │   │               │   ├── ProfileService.java
+│   │   │               │   └── TransactionService.java
+│   │   │               └── DbsBankAppApplication.java
+│   │   ├── resources
+│   │   │   ├── application.properties
+│   │   │   └── data.sql
+│   │   └── test
+│   └── pom.xml
+Backend Code
+1. application.properties
+properties
+Copy code
+spring.datasource.url=jdbc:mysql://localhost:3306/dbs_bank
+spring.datasource.username=root
+spring.datasource.password=your_password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+server.port=8080
+2. Entities
+Account.java
+
+java
+Copy code
+@Entity
+public class Account {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String type;
+    private Double balance;
+
+    // Getters and Setters
+}
+Customer.java
+
+java
+Copy code
+@Entity
+public class Customer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String username;
+    private String password;
+    private String email;
+
+    // Getters and Setters
+}
+Transaction.java
+
+java
+Copy code
+@Entity
+public class Transaction {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long accountId;
+    private String description;
+    private Double amount;
+
+    // Getters and Setters
+}
+3. Repositories
+java
+Copy code
+@Repository
+public interface AccountRepository extends JpaRepository<Account, Long> {}
+
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, Long> {}
+
+@Repository
+public interface TransactionRepository extends JpaRepository<Transaction, Long> {}
+4. Services
+AccountService.java
+
+java
+Copy code
+@Service
+public class AccountService {
+    @Autowired
+    private AccountRepository accountRepository;
+
+    public List<Account> getAllAccounts() {
+        return accountRepository.findAll();
+    }
+}
+5. Controllers
+LoginController.java
+
+java
+Copy code
+@RestController
+@RequestMapping("/customer")
+public class LoginController {
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Customer customer) {
+        // Authenticate and return a response (JWT-based token can be added)
+        return ResponseEntity.ok("Login Successful");
+    }
+}
+AccountController.java
+
+java
+Copy code
+@RestController
+@RequestMapping("/customer")
+public class AccountController {
+    @Autowired
+    private AccountService accountService;
+
+    @GetMapping("/accounts")
+    public List<Account> getAccounts() {
+        return accountService.getAllAccounts();
+    }
+}
+Frontend (React)
+Folder: /frontend
+
+Folder Structure
+css
+Copy code
+frontend
+├── src
+│   ├── components
+│   │   ├── Login.jsx
+│   │   ├── Accounts.jsx
+│   │   └── Profile.jsx
+│   ├── App.js
+│   ├── index.js
+├── package.json
+Frontend Code
+1. Login.jsx
+
+jsx
+Copy code
+import React, { useState } from "react";
+
+function Login() {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleLogin = () => {
+        fetch("http://localhost:8080/customer/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        })
+            .then((res) => res.json())
+            .then((data) => alert(data.message))
+            .catch((err) => console.error(err));
+    };
+
+    return (
+        <div>
+            <h2>Login</h2>
+            <input
+                type="text"
+                placeholder="Username"
+                onChange={(e) => setUsername(e.target.value)}
+            />
+            <input
+                type="password"
+                placeholder="Password"
+                onChange={(e) => setPassword(e.target.value)}
+            />
+            <button onClick={handleLogin}>Login</button>
+        </div>
+    );
+}
+
+export default Login;
+2. Accounts.jsx
+
+jsx
+Copy code
+import React, { useEffect, useState } from "react";
+
+function Accounts() {
+    const [accounts, setAccounts] = useState([]);
+
+    useEffect(() => {
+        fetch("http://localhost:8080/customer/accounts")
+            .then((res) => res.json())
+            .then((data) => setAccounts(data))
+            .catch((err) => console.error(err));
+    }, []);
+
+    return (
+        <div>
+            <h2>Accounts</h2>
+            <ul>
+                {accounts.map((account) => (
+                    <li key={account.id}>
+                        {account.type} - ${account.balance}
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+export default Accounts;
+Steps to Run the Application
+1. Backend
+Create a database in MySQL Workbench:
+sql
+Copy code
+CREATE DATABASE dbs_bank;
+Run the backend:
+bash
+Copy code
+mvn spring-boot:run
+
+
+
+2. Frontend
+Navigate to the frontend folder:
+bash
+Copy code
+cd frontend
+Install dependencies:
+bash
+Copy code
+npm install
+Start the React application:
+bash
+Copy code
+npm start

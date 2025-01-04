@@ -13,6 +13,11 @@ import java.math.BigDecimal;
 
 @Service
 public class UserServiceImple implements UserService {
+
+
+        @Autowired
+        private TransactionService transactionService;
+
         @Override
         public BankResponse creditAccount(CreditDebitRequest creditDebitRequest) {
                 // Check if the account exists
@@ -32,6 +37,14 @@ public class UserServiceImple implements UserService {
                         // Update the account balance
                         userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(creditDebitRequest.getAmount()));
                         userRepository.save(userToCredit);
+
+
+                        Transactiondto transactiondto = Transactiondto.builder()
+                                .accountNumber(creditDebitRequest.getAccountNumber())
+                                .amount(creditDebitRequest.getAmount())
+                                .transactionType("Credit")
+                                .build();
+                        transactionService.addTransaction(transactiondto);
 
                         return BankResponse.builder()
                                 .responseCode(AccountUtils.Account_Credit_Success)
@@ -91,6 +104,14 @@ public class UserServiceImple implements UserService {
 
                         userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(creditDebitRequest.getAmount()));
                         userRepository.save(userToDebit);
+
+                        // Log the debit transaction
+                        Transactiondto transactiondto = Transactiondto.builder()
+                                .accountNumber(creditDebitRequest.getAccountNumber())
+                                .amount(creditDebitRequest.getAmount())
+                                .transactionType("Debit")
+                                .build();
+                        transactionService.addTransaction(transactiondto);
 
                         return BankResponse.builder()
                                 .responseCode(AccountUtils.Account_Debit_Success)
@@ -163,16 +184,29 @@ public class UserServiceImple implements UserService {
                     .build();
             emailService.sendEmail(debitAlert);
 
+            Transactiondto transactiondto = Transactiondto.builder()
+                    .accountNumber(fromUser.getAccountNumber())
+                    .amount(transferRequest.getAmount())
+                    .transactionType("Debit")
+                    .build();
+            transactionService.addTransaction(transactiondto);
+
             // Add amount to the recipient's account
             toUser.setAccountBalance(toUser.getAccountBalance().add(transferRequest.getAmount()));
             userRepository.save(toUser);
-
             EmailDetails creditAlert=EmailDetails.builder()
                     .subject("Credit Alert")
                     .receipient(toUser.getEmail())
                     .body("The sum of "+ transferRequest.getAmount()+ " has been added to your account from account"+fromUser.getAccountNumber()+","+fromUser.getFirstName()+","+fromUser.getMiddleName()+","+fromUser.getLastName()+fromUser.getMiddleName()+fromUser.getLastName())
                     .build();
             emailService.sendEmail(creditAlert);
+
+            Transactiondto transactiondtocredit = Transactiondto.builder()
+                    .accountNumber(toUser.getAccountNumber())
+                    .amount(transferRequest.getAmount())
+                    .transactionType("Credit")
+                    .build();
+            transactionService.addTransaction(transactiondtocredit);
 
             return BankResponse.builder()
                     .responseCode(AccountUtils.Amount_To_Transfer_Success)
