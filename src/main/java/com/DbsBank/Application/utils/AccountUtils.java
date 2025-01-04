@@ -19,16 +19,16 @@ public class AccountUtils {
     public static final String Account_Credit_NOT_Success = "005";
     public static final String Account_Credit_NOT_Success_Message = "Account credit not successful";
 
-
-    public static final String Amount_To_Debit_Success = "008";
-    public static final String Amount_To_Debit_Success_Message = "Sufficient Balance To Debit";
-    public static final String Amount_To_Debit_NOT_Success = "007";
-    public static final String Amount_To_Debit_NOT_Success_Message = "Insufficient Balance to Debit";
-
     public static final String Account_Debit_Success = "008";
     public static final String Account_Debit_Success_Message = "Account Debit successful";
     public static final String Account_Debit_NOT_Success = "007";
     public static final String Account_Debit_NOT_Success_Message = "Account Debit not successful";
+
+
+    public static final String Amount_To_Transfer_Success = "010";
+    public static final String Amount_To_Transfer_Success_Message = "Sufficient Balance To Transfer";
+    public static final String Amount_To_Transfer_NOT_Success = "009";
+    public static final String Amount_To_Transfer_NOT_Success_Message = "Insufficient Balance to Transfer";
 
     public static String generateAccountNumber() {
 

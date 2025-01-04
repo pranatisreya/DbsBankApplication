@@ -26,7 +26,7 @@ public class EmailServiceImple implements EmailService {
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setFrom(senderEmail);
             mailMessage.setTo(emailDetails.getReceipient());
-            mailMessage.setSubject(emailDetails.getSubject());
+            mailMessage.setSubject("Bank Account Created ");
             mailMessage.setText(emailDetails.getBody());
 
             System.out.println("Sending email to: " + emailDetails.getReceipient());

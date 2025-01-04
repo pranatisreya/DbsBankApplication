@@ -1,44 +1,46 @@
 package com.DbsBank.Application.controller;
 
-import com.DbsBank.Application.dto.BankResponse;
-import com.DbsBank.Application.dto.CreditDebitRequest;
-import com.DbsBank.Application.dto.EnquiryRequest;
-import com.DbsBank.Application.dto.UserRequest;
+import com.DbsBank.Application.dto.*;
 import com.DbsBank.Application.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/bankapi")
 public class UserController {
 
     @Autowired
     UserService userService;
 
-    @PostMapping("/user")
+    @PostMapping("/customer")
     public BankResponse createAccount(@RequestBody UserRequest userRequest) {
         return userService.createAccount(userRequest);
     }
 
-    @GetMapping("/user/balanceEnquiry")
+    @GetMapping("/customer/balanceEnquiry")
     public BankResponse getBalanceEnquiry(@RequestBody EnquiryRequest enquiryRequest) {
         return userService.balanceEnquiry(enquiryRequest);
     }
 
 
-    @GetMapping("/user/nameEnquiry")
+    @GetMapping("/customer/nameEnquiry")
     public String nameEnquiry(@RequestBody EnquiryRequest enquiryRequest) {
         return userService.nameEnquiry(enquiryRequest);
     }
 
-    @PostMapping("/user/creditRequest")
+    @PostMapping("/customer/creditRequest")
     public BankResponse creditRequest(@RequestBody CreditDebitRequest creditDebitRequest) {
         return userService.creditAccount(creditDebitRequest);
     }
 
-    @PostMapping("/user/debitRequest")
+    @PostMapping("/customer/debitRequest")
     public BankResponse updateAccount(@RequestBody CreditDebitRequest creditDebitRequest) {
         return userService.debitAccount(creditDebitRequest);
+    }
+
+    @PostMapping("/customer/transferRequest")
+    public BankResponse transferRequest(@RequestBody TransferRequest transferRequest) {
+        return userService.transfer(transferRequest);
     }
 
 }

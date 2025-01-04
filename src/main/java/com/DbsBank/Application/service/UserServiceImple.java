@@ -73,8 +73,8 @@ public class UserServiceImple implements UserService {
 
                 if (userToDebit.getAccountBalance().compareTo(creditDebitRequest.getAmount()) < 0) {
                         return BankResponse.builder()
-                                .responseCode(AccountUtils.Amount_To_Debit_NOT_Success)
-                                .responseMessage(AccountUtils.Amount_To_Debit_NOT_Success_Message)
+                                .responseCode(AccountUtils.Account_Debit_NOT_Success)
+                                .responseMessage(AccountUtils.Account_Debit_NOT_Success_Message)
                                 .accountInfo(AccountInfo.builder()
                                         .accountName(userToDebit.getFirstName() + " "
                                                 + userToDebit.getMiddleName() + " "
@@ -118,12 +118,11 @@ public class UserServiceImple implements UserService {
 
     @Override
     public BankResponse transfer(TransferRequest transferRequest) {
-
         boolean isToAccountExists = userRepository.existsByAccountNumber(transferRequest.getToAccount());
         if (!isToAccountExists) {
             return BankResponse.builder()
                     .responseCode(AccountUtils.Account_NOT_Exists_Code)
-                    .responseMessage(AccountUtils.Account_NOT_Exists_Message)
+                    .responseMessage("The recipient account does not exist.")
                     .accountInfo(null)
                     .build();
         }
@@ -132,14 +131,70 @@ public class UserServiceImple implements UserService {
         if (!isFromAccountExists) {
             return BankResponse.builder()
                     .responseCode(AccountUtils.Account_NOT_Exists_Code)
-                    .responseMessage(AccountUtils.Account_NOT_Exists_Message)
+                    .responseMessage("The sender account does not exist.")
                     .accountInfo(null)
                     .build();
         }
 
+        User fromUser = userRepository.findByAccountNumber(transferRequest.getFromAccount());
+        User toUser = userRepository.findByAccountNumber(transferRequest.getToAccount());
 
+        // Check if the sender has enough balance
+        if (fromUser.getAccountBalance().compareTo(transferRequest.getAmount()) < 0) {
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.Amount_To_Transfer_NOT_Success)
+                    .responseMessage("Insufficient balance in the sender's account.")
+                    .accountInfo(AccountInfo.builder()
+                            .accountName(fromUser.getFirstName() + " " + fromUser.getMiddleName() + " " + fromUser.getLastName())
+                            .accountBalance(fromUser.getAccountBalance())
+                            .accountNumber(fromUser.getAccountNumber())
+                            .build())
+                    .build();
+        }
 
+        try {
+            // Deduct amount from the sender's account
+            fromUser.setAccountBalance(fromUser.getAccountBalance().subtract(transferRequest.getAmount()));
+            userRepository.save(fromUser);
+            EmailDetails debitAlert=EmailDetails.builder()
+                    .subject("Debit Alert")
+                    .receipient(fromUser.getEmail())
+                    .body("The sum of "+ transferRequest.getAmount()+ " has been deducted from your account")
+                    .build();
+            emailService.sendEmail(debitAlert);
+
+            // Add amount to the recipient's account
+            toUser.setAccountBalance(toUser.getAccountBalance().add(transferRequest.getAmount()));
+            userRepository.save(toUser);
+
+            EmailDetails creditAlert=EmailDetails.builder()
+                    .subject("Credit Alert")
+                    .receipient(toUser.getEmail())
+                    .body("The sum of "+ transferRequest.getAmount()+ " has been added to your account from account"+fromUser.getAccountNumber()+","+fromUser.getFirstName()+","+fromUser.getMiddleName()+","+fromUser.getLastName()+fromUser.getMiddleName()+fromUser.getLastName())
+                    .build();
+            emailService.sendEmail(creditAlert);
+
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.Amount_To_Transfer_Success)
+                    .responseMessage("Transfer successful.")
+                    .accountInfo(AccountInfo.builder()
+                            .accountName(fromUser.getFirstName() + " " + fromUser.getMiddleName() + " " + fromUser.getLastName())
+                            .accountBalance(fromUser.getAccountBalance())
+                            .accountNumber(fromUser.getAccountNumber())
+                            .build())
+                    .build();
+        } catch (Exception e) {
+            logger.error("Transfer failed. From Account: {}, To Account: {}, Error: {}",
+                    transferRequest.getFromAccount(), transferRequest.getToAccount(), e.getMessage());
+
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.Amount_To_Transfer_NOT_Success)
+                    .responseMessage("Transfer failed due to an unexpected error.")
+                    .accountInfo(null)
+                    .build();
+        }
     }
+
 
     @Override
         public BankResponse balanceEnquiry(EnquiryRequest enquiryRequest) {
