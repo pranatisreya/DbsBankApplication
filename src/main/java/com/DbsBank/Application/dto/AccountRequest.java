@@ -1,5 +1,7 @@
 package com.DbsBank.Application.dto;
 
+import java.math.BigDecimal;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,10 +9,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class EnquiryRequest {
+@AllArgsConstructor
+@NoArgsConstructor
+
+public class AccountRequest {
 
     private String accountNumber;
+    private String accountType;
+    private BigDecimal accountBalance;
 }

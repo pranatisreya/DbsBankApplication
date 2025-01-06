@@ -7,10 +7,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class EnquiryRequest {
+@AllArgsConstructor
+@NoArgsConstructor
+public class LoginRequest {
 
     private String accountNumber;
+    private String password;
+
 }
+
+
+
+

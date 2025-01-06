@@ -13,4 +13,10 @@ public interface UserService {
     BankResponse debitAccount(CreditDebitRequest creditDebitRequest);
 
     BankResponse transfer(TransferRequest transferRequest);
+
+    BankResponse login(LoginRequest loginRequest);
+
+    BankResponse createAdditionalAccount(AccountRequest accountRequest);
+
+    AccountDetailsResponse getAccountsDetails(EnquiryRequest enquiryRequest);
 }

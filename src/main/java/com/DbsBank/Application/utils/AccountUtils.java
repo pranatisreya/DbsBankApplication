@@ -4,6 +4,9 @@ import java.time.Year;
 
 public class AccountUtils {
 
+    public static final String Account_Login_Successful = "000";
+    public static final String Account_Login_Success_Message= "Account Login";
+
     public static final String Account_Exists_Code = "002";
     public static final String Account_Exists_Message = "User with email exists";
     public static final String Account_NOT_Exists_Code = "001";
