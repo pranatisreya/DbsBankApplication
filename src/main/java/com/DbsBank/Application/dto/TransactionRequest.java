@@ -1,6 +1,5 @@
 package com.DbsBank.Application.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,13 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginRequest {
-
-    private String email;
-    private String password;
-
+public class TransactionRequest {
+    private String accountNumber;
+    private String startDate;
+    private String endDate;
 }
-
-
-
-

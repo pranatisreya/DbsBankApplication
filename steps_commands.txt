@@ -14,12 +14,38 @@ git branch -M main
 git push -u origin main
 
 
+git add .
+git commit -m "Your commit message"
+git checkout main   # (Only if not on 'main' already)
+git push origin main
+
+
+
 git commit -m "Sixth commit-Transaction table added and transactions saved"
+git  commit -m "seventh commit-Account types savings,credit,loan ; getting accounts, generate bank statement, login"
 
 MYSQL root passowrd 134679
 
 swagger
 http://localhost:8080/swagger-ui/index.html
+
+
+
+
+
+user : admindbsbank
+passwd:47808e3a-a02d-4ba3-be37-30a235a19f98(generated when running appplication)
+
+
+
+
+
+
+
+
+
+
+
 
 
 Project Structure

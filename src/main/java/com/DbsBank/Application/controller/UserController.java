@@ -20,7 +20,7 @@ public class UserController {
 
     @Operation(summary = "Create new Account", description = "Assigning account number")
     @ApiResponse(responseCode = "004", description = "Account created successfully")
-    @PostMapping("/customer")
+    @PostMapping("/customer/createaccount")
     public BankResponse createAccount(@RequestBody UserRequest userRequest) {
         return userService.createAccount(userRequest);
     }
@@ -35,19 +35,43 @@ public class UserController {
         return userService.createAdditionalAccount(accountRequest);
     }
 
+//    @GetMapping("/customer/getAccounts")
+//    public AccountDetailsResponse getAccounts(@RequestBody EnquiryRequest enquiryRequest) {
+//        return userService.getAccountsDetails(enquiryRequest);
+//    }
+
     @GetMapping("/customer/getAccounts")
-    public AccountDetailsResponse getAccounts(@RequestBody EnquiryRequest enquiryRequest) {
+    public AccountDetailsResponse getAccounts(
+            @RequestParam("accountNumber") String accountNumber) {
+        EnquiryRequest enquiryRequest = new EnquiryRequest();
+        enquiryRequest.setAccountNumber(accountNumber);
         return userService.getAccountsDetails(enquiryRequest);
     }
 
+//    @GetMapping("/customer/balanceEnquiry")
+//    public BankResponse getBalanceEnquiry(@RequestBody EnquiryRequest enquiryRequest) {
+//        return userService.balanceEnquiry(enquiryRequest);
+//    }
+
     @GetMapping("/customer/balanceEnquiry")
-    public BankResponse getBalanceEnquiry(@RequestBody EnquiryRequest enquiryRequest) {
+    public BankResponse getBalanceEnquiry(
+            @RequestParam("accountNumber") String accountNumber) {
+        EnquiryRequest enquiryRequest = new EnquiryRequest();
+        enquiryRequest.setAccountNumber(accountNumber);
         return userService.balanceEnquiry(enquiryRequest);
     }
 
-    @GetMapping("/customer/nameEnquiry")
-    public String nameEnquiry(@RequestBody EnquiryRequest enquiryRequest) {
-        return userService.nameEnquiry(enquiryRequest);
+//    @GetMapping("/customer/profile")
+//    public UserDetailsResponse AccountEnquiry(@RequestBody EnquiryRequest enquiryRequest) {
+//        return userService.AccountEnquiry(enquiryRequest);
+//    }
+
+    @GetMapping("/customer/profile")
+    public UserDetailsResponse AccountEnquiry(
+            @RequestParam("accountNumber") String accountNumber) {
+        EnquiryRequest enquiryRequest = new EnquiryRequest();
+        enquiryRequest.setAccountNumber(accountNumber);
+        return userService.AccountEnquiry(enquiryRequest);
     }
 
     @PostMapping("/customer/creditRequest")

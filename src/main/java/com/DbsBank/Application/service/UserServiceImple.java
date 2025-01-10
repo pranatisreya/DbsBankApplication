@@ -1,13 +1,21 @@
 package com.DbsBank.Application.service;
 
+import com.DbsBank.Application.config.JwtTokenProvider;
 import com.DbsBank.Application.dto.*;
 import com.DbsBank.Application.entity.Account;
+import com.DbsBank.Application.entity.Role;
 import com.DbsBank.Application.entity.User;
 import com.DbsBank.Application.repository.UserRepository;
 import com.DbsBank.Application.repository.AccountRepository;
 import com.DbsBank.Application.utils.AccountUtils;
+
+import lombok.AllArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +23,9 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-// import java.util.UUID;
 
 @Service
+@AllArgsConstructor
 public class UserServiceImple implements UserService {
 
         @Autowired
@@ -272,16 +279,51 @@ public class UserServiceImple implements UserService {
 
         }
 
+
+
         @Override
-        public String nameEnquiry(EnquiryRequest enquiryRequest) {
+        public UserDetailsResponse AccountEnquiry(EnquiryRequest enquiryRequest) {
 
                 boolean isAccountExists = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
                 if (!isAccountExists) {
-                        return AccountUtils.Account_NOT_Exists_Message;
+                        return UserDetailsResponse.builder()
+                                .responseCode(AccountUtils.Account_NOT_Exists_Code)
+                                .responseMessage(AccountUtils.Account_NOT_Exists_Message)
+                                .userDetailsInfo(null)
+                                .build();
                 }
+
+                // Fetch the user details
                 User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
-                return foundUser.getFirstName() + " " + foundUser.getMiddleName() + " " + foundUser.getLastName();
+
+                // Build and return the response
+                return UserDetailsResponse.builder()
+                        .responseCode(AccountUtils.Account_Exists_Code)
+                        .responseMessage(AccountUtils.Account_Exists_Message)
+                        .userDetailsInfo(UserDetailsInfo.builder()
+                                .firstName(foundUser.getFirstName())
+                                .middleName(foundUser.getMiddleName())
+                                .lastName(foundUser.getLastName())
+                                .email(foundUser.getEmail())
+                                .phoneNumber(foundUser.getPhoneNumber())
+                                .alternatePhoneNumber(foundUser.getAlternatePhoneNumber())
+                                .age(foundUser.getAge())
+                                .gender(foundUser.getGender())
+                                .dateofBirth(foundUser.getDateOfBirth())
+                                .address(foundUser.getAddress())
+                                .state(foundUser.getState())
+                                .country(foundUser.getCountry())
+                                .accountType(foundUser.getAccountType())
+                                .accountBalance(foundUser.getAccountBalance())
+                                .accountNumber(foundUser.getAccountNumber())
+                                .accountStatus(foundUser.getAccountStatus())
+                                .createdAt(foundUser.getCreatedAt())
+                                .updatedAt(foundUser.getUpdatedAt())
+                                .build())
+                        .build();
         }
+
+
 
         private static final Logger logger = LoggerFactory.getLogger(UserServiceImple.class);
 
@@ -291,9 +333,12 @@ public class UserServiceImple implements UserService {
         @Autowired
         private EmailService emailService;
 
+        @Autowired
+        private PasswordEncoder passwordEncoder;
+
         @Override
         public AccountDetailsResponse getAccountsDetails(EnquiryRequest enquiryRequest) {
-                // Fetch the user details (savings account) from the 'user' table
+                // 'user' table
                 User user = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
 
                 if (user == null) {
@@ -304,26 +349,25 @@ public class UserServiceImple implements UserService {
                                         .build();
                 }
 
-                // Create a list to store all account information (savings, credit, and loan)
                 List<AccountInfo> accountInfoDTOS = new ArrayList<>();
 
-                // Add savings account info from the 'user' table
                 accountInfoDTOS.add(AccountInfo.builder()
                                 .accountType("Savings")
                                 .accountBalance(user.getAccountBalance())
                                 .accountNumber(user.getAccountNumber())
-                                .accountName(user.getFirstName()+" "+user.getMiddleName()+" "+user.getLastName())
+                                .accountName(user.getFirstName() + " " + user.getMiddleName() + " "
+                                                + user.getLastName())
                                 .build());
 
-                // Fetch credit and loan account details from the 'account' table
+                // 'account' table
                 List<Account> accounts = accountRepository.findByUser_AccountNumber(enquiryRequest.getAccountNumber());
 
-                // Add credit and loan account info to the list
                 accounts.stream().map(account -> AccountInfo.builder()
                                 .accountType(account.getAccountType())
                                 .accountBalance(account.getAccountBalance())
                                 .accountNumber(account.getAccountNumber())
-                                .accountName(user.getFirstName()+" "+user.getMiddleName()+" "+user.getLastName())
+                                .accountName(user.getFirstName() + " " + user.getMiddleName() + " "
+                                                + user.getLastName())
                                 .build()).forEach(accountInfoDTOS::add);
 
                 return AccountDetailsResponse.builder()
@@ -365,8 +409,9 @@ public class UserServiceImple implements UserService {
                                 .state(userRequest.getState())
                                 .country(userRequest.getCountry())
                                 .accountType(userRequest.getAccountType())
-                                .password(userRequest.getPassword())
+                                .password(passwordEncoder.encode(userRequest.getPassword()))
                                 .accountStatus("Active") // Default account status
+                                .role(Role.valueOf("ROLE_USER"))
                                 .accountNumber(AccountUtils.generateAccountNumber())
                                 .accountBalance(BigDecimal.ZERO)
                                 .build();
@@ -414,30 +459,48 @@ public class UserServiceImple implements UserService {
                 }
         }
 
-        // @Autowired
-        // private BCryptPasswordEncoder passwordEncoder;
+        @Autowired
+        AuthenticationManager authenticationManager;
+
+        @Autowired
+        JwtTokenProvider jwtTokenProvider;
 
         @Override
         public BankResponse login(LoginRequest loginRequest) {
 
-                // Validate account number
-                boolean customerexists = userRepository.existsByAccountNumber(loginRequest.getAccountNumber());
+                Authentication authentication = null;
+                authentication = authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),
+                                                loginRequest.getPassword()));
 
-                if (!customerexists) {
-                        throw new RuntimeException("Invalid username or password");
-                }
+                EmailDetails loginAlert = EmailDetails.builder()
+                                .subject("Logged In")
+                                .receipient(loginRequest.getEmail())
+                                .body("You are logged into your account, if You did not initiate this request please contact the bank!")
+                                .build();
 
-                User customer = userRepository.findByAccountNumber(loginRequest.getAccountNumber());
+                emailService.sendEmail(loginAlert);
 
-                // Validate password
-                // if (!passwordEncoder.matches(loginRequest.getPassword(),
-                // customer.getPassword())) {
+                // // Validate account number
+                // boolean customerexists =
+                // userRepository.existsByAccountNumber(loginRequest.getAccountNumber());
+
+                // if (!customerexists) {
                 // throw new RuntimeException("Invalid username or password");
                 // }
 
-                if (!(loginRequest.getPassword().equals(customer.getPassword()))) {
-                        throw new RuntimeException("Invalid username or password");
-                }
+                // User customer =
+                // userRepository.findByAccountNumber(loginRequest.getAccountNumber());
+
+                // // Validate password
+                // // if (!passwordEncoder.matches(loginRequest.getPassword(),
+                // // customer.getPassword())) {
+                // // throw new RuntimeException("Invalid username or password");
+                // // }
+
+                // if (!(loginRequest.getPassword().equals(customer.getPassword()))) {
+                // throw new RuntimeException("Invalid username or password");
+                // }
 
                 // Generate session ID
                 // String sessionId = UUID.randomUUID().toString();
@@ -445,7 +508,8 @@ public class UserServiceImple implements UserService {
                 // Set response
                 return BankResponse.builder()
                                 .responseCode(AccountUtils.Account_Login_Successful)
-                                .responseMessage(AccountUtils.Account_Login_Success_Message)
+                                .responseMessage(AccountUtils.Account_Login_Success_Message + " "
+                                                + jwtTokenProvider.generateToken(authentication))
                                 .accountInfo(null)
                                 .build();
 

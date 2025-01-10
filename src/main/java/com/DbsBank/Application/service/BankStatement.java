@@ -1,5 +1,6 @@
 package com.DbsBank.Application.service;
 
+import com.DbsBank.Application.dto.TransactionRequest;
 import com.DbsBank.Application.entity.Transaction;
 import com.DbsBank.Application.repository.BankStatementRepository;
 import org.springframework.stereotype.Service;
@@ -17,13 +18,13 @@ public class BankStatement {
         this.bankStatementRepository = bankStatementRepository;
     }
 
-    public List<Transaction> generateStatement(String accountNumber, String startDate, String endDate) {
+    public List<Transaction> generateStatement(TransactionRequest transactionRequest) {
         try {
             // Parse dates
-            LocalDate start = LocalDate.parse(startDate, DateTimeFormatter.ISO_DATE);
-            LocalDate end = LocalDate.parse(endDate, DateTimeFormatter.ISO_DATE);
+            LocalDate start = LocalDate.parse(transactionRequest.getStartDate(), DateTimeFormatter.ISO_DATE);
+            LocalDate end = LocalDate.parse(transactionRequest.getEndDate(), DateTimeFormatter.ISO_DATE);
             // Use repository method to fetch results
-            return bankStatementRepository.findByAccountNumberAndDateBetween(accountNumber, start, end);
+            return bankStatementRepository.findByAccountNumberAndDateBetween(transactionRequest.getAccountNumber(), start, end);
         } catch (Exception e) {
             throw new RuntimeException("Error generating bank statement: " + e.getMessage(), e);
         }
